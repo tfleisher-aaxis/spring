@@ -7,12 +7,12 @@ pipeline {
           steps {
             fileExists 'README.md'
             validateDeclarativePipeline 'Jenkinsfile'
-            sh 'cd spring && ./mvnw validate'
+            sh 'cd sample_for_k8s && ./mvnw validate'
           }
         }
       }
     }
-    stage('Build spring') {
+    stage('Build sample_for_k8s') {
       agent {
         docker {
           image 'maven:3.5.3-jdk-8-alpine'
@@ -21,12 +21,12 @@ pipeline {
         
       }
       steps {
-        sh '''cd spring
+        sh '''cd sample_for_k8s
 mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
         stash name: 'spring-target-build', includes: 'spring/target/**'
       }
     }
-    stage('Test spring') {
+    stage('Test sample_for_k8s') {
       agent {
         docker {
           image 'maven:3.5.3-jdk-8-alpine'
@@ -37,14 +37,14 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
       steps {
         echo 'Test Stage'
         unstash name:'spring-target-build'
-        //sh '''cd spring
+        //sh '''cd sample_for_k8s
 //mvn --batch-mode -V -U -e test -Dsurefire.useFile=false -Dmaven.test.failure.ignore=true'''
         //stash name: 'testResults', includes: '**/target/surefire-reports/**/*.xml'
         echo 'No tests to run'
         stash name: 'spring-target-test', includes: 'spring/target/**'
       }
     }
-    stage('Record Spring Tests') {
+    stage('Record sample_for_k8s Tests') {
       agent any
       steps {
         //unstash name: 'testResults'
@@ -53,7 +53,7 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
         echo 'No tests at this time'
       }
     }
-    stage('Package spring') {
+    stage('Package sample_for_k8s') {
       agent {
         docker {
           image 'maven:3.5.3-jdk-8-alpine'
@@ -64,12 +64,12 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
       steps {
         echo 'Building Package'
         unstash name:'spring-target-test'
-        sh '''cd spring
+        sh '''cd sample_for_k8s
 mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
         stash(name: 'jarfiles', includes: '**/target/**/*.jar')
       }
     }
-    stage('Deploy spring') {
+    stage('Deploy sample_for_k8s') {
       /* when {
         branch 'production'
       } */
