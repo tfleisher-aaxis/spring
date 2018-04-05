@@ -7,7 +7,7 @@ pipeline {
           steps {
             fileExists 'README.md'
             validateDeclarativePipeline 'Jenkinsfile'
-            sh 'cd sample_for_k8s && ./mvnw validate'
+            sh 'cd sample_for_k8s && mvn validate'
           }
         }
       }
