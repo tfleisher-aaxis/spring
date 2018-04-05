@@ -33,7 +33,7 @@ pipeline {
       steps {
         sh '''cd sample_for_k8s
 mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
-        stash name: 'spring-target-build', includes: 'spring/target/**'
+        stash name: 'sample_for_k8s-target-build', includes: 'sample_for_k8s/target/**'
       }
     }
     stage('Test sample_for_k8s') {
@@ -46,12 +46,12 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
       }
       steps {
         echo 'Test Stage'
-        unstash name:'spring-target-build'
+        unstash name:'sample_for_k8s-target-build'
         //sh '''cd sample_for_k8s
 //mvn --batch-mode -V -U -e test -Dsurefire.useFile=false -Dmaven.test.failure.ignore=true'''
         //stash name: 'testResults', includes: '**/target/surefire-reports/**/*.xml'
         echo 'No tests to run'
-        stash name: 'spring-target-test', includes: 'spring/target/**'
+        stash name: 'sample_for_k8s-target-test', includes: 'sample_for_k8s/target/**'
       }
     }
     stage('Record sample_for_k8s Tests') {
@@ -73,10 +73,10 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
       }
       steps {
         echo 'Building Package'
-        unstash name:'spring-target-test'
+        unstash name:'sample_for_k8s-target-test'
         sh '''cd sample_for_k8s
 mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
-        stash(name: 'jarfiles', includes: '**/target/**/*.jar')
+        stash(name: 'sample_for_k8s-jarfiles', includes: 'sample_for_k8s/target/**/*.jar')
       }
     }
     stage('Deploy sample_for_k8s') {
