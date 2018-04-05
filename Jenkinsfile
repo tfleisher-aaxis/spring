@@ -76,7 +76,7 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
         unstash name:'sample_for_k8s-target-test'
         sh '''cd sample_for_k8s
 mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
-        stash(name: 'sample_for_k8s-jarfiles', includes: 'sample_for_k8s/target/**/*.jar')
+        stash(name: 'sample_for_k8s-package', includes: 'sample_for_k8s/target/**')
       }
     }
     stage('Deploy sample_for_k8s') {
@@ -85,11 +85,28 @@ mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
       } */
       steps {
         timeout(time: 10, unit: 'MINUTES') {
-          input(message: 'Deploy?', ok: 'Approve')
+          input(message: 'Deploy to repository?', ok: 'Approve')
         }
         
         echo 'Deploying..'
       }
     }
+    stage('Build docker image') {
+      agent {
+        docker {
+          image 'maven:3.5.3-jdk-8-alpine'
+          args '-u 0:0 -v $HOME/.m2:/root/.m2'
+        }
+        
+      }
+      steps {
+        unstash name: 'sample_for_k8s-package'
+        sh """cd sample_for_k8s 
+        mvn --batch-mode -V -U -e dockerfile:build -DskipTests=true -Ddocker.image.repository=tfleisher/k8s-repo -Ddocker.image.tag=\'\${project.artifactId}-\${project.version}-${env.BUILD_NUMBER}'
+        """
+      }
+
+    }
+
   }
 }
