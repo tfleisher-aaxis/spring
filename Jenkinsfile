@@ -3,11 +3,21 @@ pipeline {
   stages {
     stage('Validate') {
       parallel {
-        stage('Validate') {
+        stage('Validate sample_for_k8s') {
+          agent {
+            docker {
+              image 'maven:3.5.3-jdk-8-alpine'
+              args '-u 0:0 -v $HOME/.m2:/root/.m2'
+            }
+          }
           steps {
             fileExists 'README.md'
-            validateDeclarativePipeline 'Jenkinsfile'
             sh 'cd sample_for_k8s && mvn validate'
+          }
+        }
+        stage('Validate pipeline') {
+          steps {
+            validateDeclarativePipeline 'Jenkinsfile'
           }
         }
       }
