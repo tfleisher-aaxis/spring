@@ -70,9 +70,9 @@ mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
       }
     }
     stage('Deploy spring') {
-      when {
-        //branch 'production'
-      }
+      /* when {
+        branch 'production'
+      } */
       steps {
         timeout(time: 10, unit: 'MINUTES') {
           input(message: 'Deploy?', ok: 'Approve')
