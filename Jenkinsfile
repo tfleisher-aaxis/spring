@@ -95,7 +95,7 @@ mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
       agent {
         docker {
           image 'maven:3.5.3-jdk-8-alpine'
-          args "-u 0:0 -v $HOME/.m2:/root/.m2 -e DOCKER_HOST=${env.DOCKER_HOST}"
+          args "-u 0:0 -v \$HOME/.m2:/root/.m2 -e DOCKER_HOST=${env.DOCKER_HOST}"
         }
         
       }
