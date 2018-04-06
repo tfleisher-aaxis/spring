@@ -6,13 +6,13 @@ pipeline {
         stage('Validate sample_for_k8s') {
           agent {
             docker {
-              image 'maven:3.5.3-jdk-8-alpine'
+              image 'openjdk:8-jdk-alpine'
               args '-u 0:0 -v $HOME/.m2:/root/.m2'
             }
           }
           steps {
             fileExists 'README.md'
-            sh 'cd sample_for_k8s && mvn validate'
+            sh 'cd sample_for_k8s && ./mvnw validate'
           }
         }
         stage('Validate pipeline') {
@@ -25,21 +25,21 @@ pipeline {
     stage('Build sample_for_k8s') {
       agent {
         docker {
-          image 'maven:3.5.3-jdk-8-alpine'
+          image 'openjdk:8-jdk-alpine'
           args '-u 0:0 -v $HOME/.m2:/root/.m2'
         }
         
       }
       steps {
         sh '''cd sample_for_k8s
-mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
+./mvnw --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
         stash name: 'sample_for_k8s-target-build', includes: 'sample_for_k8s/target/**'
       }
     }
     stage('Test sample_for_k8s') {
       agent {
         docker {
-          image 'maven:3.5.3-jdk-8-alpine'
+          image 'openjdk:8-jdk-alpine'
           args '-u 0:0 -v $HOME/.m2:/root/.m2'
         }
         
@@ -48,7 +48,7 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
         echo 'Test Stage'
         unstash name:'sample_for_k8s-target-build'
         //sh '''cd sample_for_k8s
-//mvn --batch-mode -V -U -e test -Dsurefire.useFile=false -Dmaven.test.failure.ignore=true'''
+//./mvnw --batch-mode -V -U -e test -Dsurefire.useFile=false -Dmaven.test.failure.ignore=true'''
         //stash name: 'testResults', includes: '**/target/surefire-reports/**/*.xml'
         echo 'No tests to run'
         stash name: 'sample_for_k8s-target-test', includes: 'sample_for_k8s/target/**'
@@ -66,7 +66,7 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
     stage('Package sample_for_k8s') {
       agent {
         docker {
-          image 'maven:3.5.3-jdk-8-alpine'
+          image 'openjdk:8-jdk-alpine'
           args '-u 0:0 -v $HOME/.m2:/root/.m2'
         }
         
@@ -75,7 +75,7 @@ mvn --batch-mode -V -U -e clean compile test-compile -Dsurefire.useFile=false'''
         echo 'Building Package'
         unstash name:'sample_for_k8s-target-test'
         sh '''cd sample_for_k8s
-mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
+./mvnw --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
         stash(name: 'sample_for_k8s-package', includes: 'sample_for_k8s/target/**')
       }
     }
@@ -92,17 +92,11 @@ mvn --batch-mode -V -U -e package -DskipTests=true -Ddockerfile.skip'''
       }
     }
     stage('Build docker image') {
-      agent {
-        docker {
-          image 'maven:3.5.3-jdk-8-alpine'
-          args "-u 0:0 -v \$HOME/.m2:/root/.m2 -e DOCKER_HOST=${env.DOCKER_HOST}"
-        }
-        
-      }
+      agent any
       steps {
         unstash name: 'sample_for_k8s-package'
         sh """cd sample_for_k8s 
-        mvn --batch-mode -V -U -e dockerfile:build -DskipTests=true -Ddocker.image.repository=tfleisher/k8s-repo -Ddocker.image.tag=\'\${project.artifactId}-\${project.version}-${env.BUILD_NUMBER}'
+        ./mvnw --batch-mode -V -U -e dockerfile:build -DskipTests=true -Ddocker.image.repository=tfleisher/k8s-repo -Ddocker.image.tag=\'\${project.artifactId}-\${project.version}-${env.BUILD_NUMBER}'
         """
       }
 
