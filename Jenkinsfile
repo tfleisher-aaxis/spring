@@ -90,13 +90,6 @@ pipeline {
         
         echo 'Deploying..'
       }
-      post {
-        aborted {
-          script {
-            currentBuild.result = 'SUCCESS'
-          }
-        }
-      }
     }
     stage('Build docker image') {
       agent any
