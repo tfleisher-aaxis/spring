@@ -96,7 +96,7 @@ pipeline {
       steps {
         unstash name: 'sample_for_k8s-package'
         sh """cd sample_for_k8s 
-        ./mvnw --batch-mode -V -U -e dockerfile:build -DskipTests=true -Ddocker.image.repository=tfleisher/k8s-repo -Ddocker.image.tag=\'\${project.artifactId}-\${project.version}-b${env.BUILD_NUMBER}'
+        ./mvnw --batch-mode -V -U -e dockerfile:build -DskipTests=true -Ddocker.image.repository=tfleisher/k8s-repo -Ddocker.image.tag='spring-sample_for_k8s-b${env.BUILD_NUMBER}'
         """
       }
 
@@ -105,9 +105,10 @@ pipeline {
       agent any
       steps {
         script {
-
-          withDockerRegistry([credentialsId: 'docker-hub-creds', url: 'https://registry.hub.docker.com']) {
-            sh "docker push tfleisher/k8s-repo:sample_for_k8s-1.0-SNAPSHOT-b${env.BUILD_NUMBER}"
+          // Empty url uses public repository
+          withDockerRegistry([credentialsId: 'docker-hub-creds', url: '']) {
+            def myImage = docker.image("tfleisher/k8s-repo:spring-sample_for_k8s-b${env.BUILD_NUMBER}")
+            myImage.push()
           }
         }
       }
