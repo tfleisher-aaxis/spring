@@ -105,7 +105,7 @@ pipeline {
       agent any
       steps {
         withDockerRegistry([credentialsId: 'docker-hub-creds', url: 'https://registry.hub.docker.com']) {
-          sh "docker push tfleisher/k8s-repo/sample_for_k8s-1.0-SNAPSHOT-b${env.BUILD_NUMBER}"
+          sh "docker push tfleisher/k8s-repo:sample_for_k8s-1.0-SNAPSHOT-b${env.BUILD_NUMBER}"
         }
       }
 
