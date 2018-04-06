@@ -84,11 +84,18 @@ pipeline {
         branch 'production'
       } */
       steps {
-        timeout(time: 10, unit: 'MINUTES') {
+        timeout(time: 5, unit: 'MINUTES') {
           input(message: 'Deploy to repository?', ok: 'Approve')
         }
         
         echo 'Deploying..'
+      }
+      post {
+        aborted {
+          script {
+            currentBuild.result = 'SUCCESS'
+          }
+        }
       }
     }
     stage('Build docker image') {
